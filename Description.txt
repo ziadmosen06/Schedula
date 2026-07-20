@@ -1,0 +1,54 @@
+Phase 1 — Backend + Database (Weeks 1-3)
+Python (Flask) + SQL
+
+Set up your database (users, tasks, schedules)
+Build the server
+Create the basic API endpoints (add task, get tasks, delete task)
+Test it works using Postman
+
+
+Phase 2 — Frontend (Weeks 4-6)
+React + CSS
+
+Login/signup pages
+Task adding page
+Calendar view to see your schedule
+Connect it to your backend
+
+
+Phase 3 — AI Feature (Weeks 7-8)
+
+Connect OpenAI or Claude API
+AI automatically splits tasks across days
+"I'm tired" button that reschedules intelligently
+
+
+Phase 4 — Beginner Cyber (Weeks 9-10)
+Year 2 level — you can do this now
+
+Hash passwords with bcrypt
+Limit login attempts (brute force protection)
+Proper session management (logout kills the session)
+Input validation to prevent SQL injection
+
+
+Phase 5 — Intermediate Cyber (Year 3)
+You'll learn these in your upcoming courses
+
+Two Factor Authentication (2FA)
+Encrypt sensitive data in the database
+Force HTTPS, block plain HTTP
+
+
+Phase 6 — Advanced Cyber (Year 4 / Graduate Level)
+This is what makes it stand out
+
+Security Audit Log (record every user action)
+Anomaly Detection (flag suspicious logins like impossible travel)
+Pentest your own app and write a professional report on what you found and fixed
+
+
+Put it on GitHub after every phase so your profile is always growing
+
+Summary:
+You're building an AI-powered student planner that grows with you across your entire degree. You start with the backend and database as the foundation, then build the frontend around it, then add AI smart scheduling on top. From there, each year you layer in stronger cybersecurity features — starting from basic password security in year 2, moving to encryption and 2FA in year 3, and finishing with anomaly detection and a real pentest report by graduation. The result is one complete, live, professional project that covers both software development and cybersecurity together. That combination is rare for a fresh graduate and will genuinely set you apart in interviews and internship applications.
