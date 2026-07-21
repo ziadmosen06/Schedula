@@ -4,10 +4,10 @@ const dotenv = require('dotenv');
 dns.setServers(['8.8.8.8', '1.1.1.1']);
 dotenv.config();
 
-console.log('ENV TEST:', process.env.OPENAI_API_KEY);
-
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
@@ -17,8 +17,30 @@ connectDB();
 
 const app = express();
 
+// Security HTTP headers
+app.use(helmet());
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { message: 'Too many requests, please try again after 15 minutes' }
+});
+app.use('/api/', limiter);
+
+// Stricter limit for auth routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { message: 'Too many login attempts, please try again after 15 minutes' }
+});
+app.use('/api/auth/login', authLimiter);
+
 app.use(cors());
 app.use(express.json());
+
+
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
