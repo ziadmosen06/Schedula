@@ -20,6 +20,14 @@ const UserSchema = new mongoose.Schema({
     minlength: 6,
     select: false
   },
+  twoFactorSecret: {
+    type: String,
+    select: false
+  },
+  twoFactorEnabled: {
+    type: Boolean,
+    default: false
+  },
   createdAt: {
     type: Date,
     default: Date.now
