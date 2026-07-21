@@ -17,3 +17,4 @@ export const loginUser = (data) => API.post('/auth/login', data);
 export const getTasks = () => API.get('/tasks');
 export const createTask = (data) => API.post('/tasks', data);
 export const deleteTask = (id) => API.delete(`/tasks/${id}`);
+export const scheduleTask = (id) => API.post(`/ai/schedule/${id}`);

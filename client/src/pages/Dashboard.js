@@ -6,7 +6,7 @@ import {
   Select, FormControl, InputLabel, Alert, CircularProgress
 } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
-import { getTasks, createTask, deleteTask } from '../services/api';
+import { getTasks, createTask, deleteTask, scheduleTask } from '../services/api';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -60,6 +60,15 @@ const Dashboard = () => {
     }
   };
 
+  const handleSchedule = async (id) => {
+    try {
+      const { data } = await scheduleTask(id);
+      setTasks(tasks.map(task => task._id === id ? data.task : task));
+    } catch (err) {
+      setError('Failed to schedule task');
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -86,8 +95,8 @@ const Dashboard = () => {
           <TextField label="Description" fullWidth multiline rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
           <Box>
             <Typography variant="body2" sx={{ mb: 0.5, color: 'text.secondary' }}>Deadline</Typography>
-           <TextField type="date" fullWidth value={deadline} onChange={(e) => setDeadline(e.target.value)} required />
-           </Box>
+            <TextField type="date" fullWidth value={deadline} onChange={(e) => setDeadline(e.target.value)} required />
+          </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl fullWidth>
               <InputLabel>Priority</InputLabel>
@@ -124,8 +133,19 @@ const Dashboard = () => {
                   <Typography variant="body2">
                     Estimated: {task.estimatedHours} hours
                   </Typography>
+                  {task.scheduledDays && task.scheduledDays.length > 0 && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="body2" fontWeight="bold">AI Schedule:</Typography>
+                      {task.scheduledDays.map((day, index) => (
+                        <Typography key={index} variant="body2" color="text.secondary">
+                          {new Date(day.date).toLocaleDateString()} — {day.hoursPerDay} hrs {day.focus ? `— ${day.focus}` : ''}
+                        </Typography>
+                      ))}
+                    </Box>
+                  )}
                 </CardContent>
                 <CardActions>
+                  <Button size="small" color="primary" onClick={() => handleSchedule(task._id)}>Schedule with AI</Button>
                   <Button size="small" color="error" onClick={() => handleDelete(task._id)}>Delete</Button>
                 </CardActions>
               </Card>
