@@ -35,6 +35,9 @@ const Register = () => {
           <TextField label="Password" type="password" fullWidth value={password} onChange={(e) => setPassword(e.target.value)} required />
           <Button type="submit" variant="contained" fullWidth size="large">Register</Button>
           <Typography align="center">
+            <Link to="/forgot-password">Forgot password?</Link>
+          </Typography>
+          <Typography align="center">
             Already have an account? <Link to="/login">Login</Link>
           </Typography>
         </Box>

@@ -1,22 +1,25 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Container, Box, TextField, Button, Typography, Alert } from '@mui/material';
-import { loginUser } from '../services/api';
-import { useAuth } from '../context/AuthContext';
+import { resetPasswordUser } from '../services/api';
 
-const Login = () => {
+const ResetPassword = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
+    setError('');
+
     try {
-      const { data } = await loginUser({ email, password });
-      login(data);
-      navigate('/dashboard');
+      await resetPasswordUser({ email, otp, newPassword });
+      setMessage('Password updated successfully. Redirecting to login...');
+      setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong');
     }
@@ -26,17 +29,16 @@ const Login = () => {
     <Container maxWidth="xs">
       <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
         <Typography variant="h4" fontWeight="bold">Schedula</Typography>
-        <Typography variant="h6">Login</Typography>
+        <Typography variant="h6">Reset Password</Typography>
         {error && <Alert severity="error" sx={{ width: '100%' }}>{error}</Alert>}
+        {message && <Alert severity="success" sx={{ width: '100%' }}>{message}</Alert>}
         <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField label="Email" type="email" fullWidth value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <TextField label="Password" type="password" fullWidth value={password} onChange={(e) => setPassword(e.target.value)} required />
-          <Button type="submit" variant="contained" fullWidth size="large">Login</Button>
+          <TextField label="OTP" fullWidth value={otp} onChange={(e) => setOtp(e.target.value)} required />
+          <TextField label="New Password" type="password" fullWidth value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+          <Button type="submit" variant="contained" fullWidth size="large">Reset Password</Button>
           <Typography align="center">
-            <Link to="/forgot-password">Forgot password?</Link>
-          </Typography>
-          <Typography align="center">
-            Don't have an account? <Link to="/register">Register</Link>
+            <Link to="/login">Back to login</Link>
           </Typography>
         </Box>
       </Box>
@@ -44,4 +46,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ResetPassword;

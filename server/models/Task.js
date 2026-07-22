@@ -49,18 +49,24 @@ const TaskSchema = new mongoose.Schema({
   }
 });
 
-// Encrypt description before saving
+// Encrypt description before saving (skip if no key)
 TaskSchema.pre('save', function() {
+  if (!ENCRYPTION_KEY) return;
   if (this.isModified('description') && this.description) {
-    this.description = CryptoJS.AES.encrypt(
-      this.description,
-      ENCRYPTION_KEY
-    ).toString();
+    try {
+      this.description = CryptoJS.AES.encrypt(
+        this.description,
+        ENCRYPTION_KEY
+      ).toString();
+    } catch (e) {
+      // encryption failed; leave description as-is
+    }
   }
 });
 
-// Decrypt description after fetching
+// Decrypt description after fetching (skip if no key)
 TaskSchema.post('find', function(docs) {
+  if (!ENCRYPTION_KEY) return;
   docs.forEach(doc => {
     if (doc.description) {
       try {

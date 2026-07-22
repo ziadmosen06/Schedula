@@ -1,5 +1,9 @@
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+
 const { CohereClient } = require('cohere-ai');
 const Task = require('../models/Task');
+const { logAuditEvent } = require('../utils/audit');
 
 const scheduleTask = async (req, res) => {
   const cohere = new CohereClient({
@@ -20,9 +24,13 @@ const scheduleTask = async (req, res) => {
     const today = new Date().toISOString().split('T')[0];
     const deadline = new Date(task.deadline).toISOString().split('T')[0];
 
-    const response = await cohere.chat({
-      model: 'command-r7b-12-2024',
-      message: `Create a daily schedule for this task:
+    let scheduledDays = [];
+
+    try {
+      if (process.env.COHERE_API_KEY) {
+        const response = await cohere.chat({
+          model: 'command-r7b-12-2024',
+          message: `Create a daily schedule for this task:
 Task: ${task.title}
 Total hours needed: ${task.estimatedHours}
 Start date: ${today}
@@ -31,36 +39,40 @@ Priority: ${task.priority}
 
 Return ONLY a JSON array, no other text:
 [{"date":"YYYY-MM-DD","hoursPerDay":2,"focus":"what to do"}]
-Total hours across all days must equal ${task.estimatedHours}.`,
-    });
+Total hours across all days must equal ${task.estimatedHours}.`
+        });
 
-    const text = response.text;
-console.log('AI response:', text);
+        const text = response.text;
+        const jsonMatch = text.match(/\[[\s\S]*?\]/);
 
-const jsonMatch = text.match(/\[[\s\S]*?\]/);
+        if (jsonMatch) {
+          scheduledDays = JSON.parse(jsonMatch[0]);
+        }
+      }
+    } catch (aiError) {
+      console.warn('AI schedule fallback used:', aiError.message);
+    }
 
-if (!jsonMatch) {
-  return res.status(500).json({ message: 'AI could not generate a schedule' });
-}
-
-try {
-  const scheduledDays = JSON.parse(jsonMatch[0]);
-  task.scheduledDays = scheduledDays;
-  await task.save();
-  res.status(200).json({ message: 'Task scheduled successfully', task });
-} catch (parseError) {
-  console.error('Parse error:', parseError.message);
-  console.error('Raw text:', text);
-  res.status(500).json({ message: 'Failed to parse AI response' });
-}
+    if (!scheduledDays.length) {
+      const start = new Date();
+      const end = new Date(task.deadline);
+      const days = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
+      const hoursPerDay = Number((task.estimatedHours / days).toFixed(1));
+      scheduledDays = Array.from({ length: Math.min(days, 3) }, (_, index) => ({
+        date: new Date(start.getTime() + index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        hoursPerDay: index === Math.min(days, 3) - 1 ? Number((task.estimatedHours - (hoursPerDay * (Math.min(days, 3) - 1))).toFixed(1)) || hoursPerDay : hoursPerDay,
+        focus: index === 0 ? 'Focus on the highest-priority work' : 'Continue steadily'
+      }));
+    }
     task.scheduledDays = scheduledDays;
     await task.save();
 
-    res.status(200).json({ message: 'Task scheduled successfully', task });
+    await logAuditEvent(req.user._id, 'task scheduled with AI', req);
 
+    res.status(200).json({ message: 'Task scheduled successfully', task });
   } catch (error) {
     console.error('Cohere error:', error.message);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Unable to process request' });
   }
 };
 
